@@ -1,6 +1,6 @@
 ## Testing
 
-Run test
+Running Tests
 
 ```bash
 vendor/bin/phpunit
