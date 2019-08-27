@@ -8,6 +8,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OrderShipped;
 use App\Order;
@@ -36,10 +37,15 @@ class SendOrderEmail implements ShouldQueue
      */
     public function handle()
     {
-        // throw new \Exception("I am throwing this exception", 1);
+        // Mailtrap free account is allow only 2 emails every 1 second
+        Redis::throttle('my-mailtrap')->allow(2)->every(1)->then(function () {
 
-        $recipient = 'mail.savepong@gmail.com';
-        Mail::to($recipient)->send(new OrderShipped($this->order));
-        Log::info('Emailed order ' . $this->order->id);
+            $recipient = 'mail.savepong@gmail.com';
+            Mail::to($recipient)->send(new OrderShipped($this->order));
+            Log::info('Emailed order ' . $this->order->id);
+        }, function () {
+            // Could not obtain lock; this job will be re-queued
+            return $this->release(2);
+        });
     }
 }
