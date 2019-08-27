@@ -13,10 +13,15 @@ class MailController extends Controller
 {
     public function index()
     {
-        $order = Order::findOrFail(rand(1, 50));
-        SendOrderEmail::dispatch($order);
+        for ($i = 0; $i < 20; $i++) {
+            $order = Order::findOrFail(rand(1, 50));
+            if (rand(1, 3) > 1) {
+                SendOrderEmail::dispatch($order)->onQueue('email');
+            } else {
+                SendOrderEmail::dispatch($order)->onQueue('sms');
+            }
+        }
 
-        Log::info('Dispatched order ' . $order->id);
-        return 'Dispatched order ' . $order->id;
+        return 'Dispatched orders';
     }
 }
